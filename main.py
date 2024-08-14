@@ -1,20 +1,19 @@
 import gspread
 import pandas as pd
+from datetime import datetime
 from scripts.load_data import load_data
 from scripts.clean_sheets_leads import clean_sheets_leads
 
 def main():
 
     # Establish client name and cutoff date (for cleaning outliers)
-    client = 'tovuti'
-    start_date = ''
+    client = 'tovuti'                   # Replace with intended client
+    start_date = datetime(2024, 6, 16)  # Replace with sprint start_date
 
     # Load the data
     data = load_data(client)
 
-    # For each sheet, create a variable
-    clean_sheets_leads(data, cutoff_date)
-
-
+    # Clean the leads related sheets
+    clean_sheets_leads(data, start_date)
 
 main()

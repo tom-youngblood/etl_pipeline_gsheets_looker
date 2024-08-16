@@ -1,9 +1,10 @@
 import gspread
 import pandas as pd
+import numpy as np
 
 def push_data(sheets, ss):
     '''
-    Pushes pandas dataframes into
+    Pushes pandas dataframes into Google Sheets.
     _________
 
     Arguments
@@ -13,20 +14,23 @@ def push_data(sheets, ss):
 
     # Mapping of sheet names to DataFrames
     sheet_mapping = {
-        #'leadDataClean_df': 'leadDataClean',
-        #'flagged_df': 'flagged',
+        'leadDataClean_df': 'leadDataClean',
+        'flagged_df': 'flagged',
         'metadataFacebook_df': 'metadataFacebook',
         'metadataGoogle_df': 'metadataGoogle',
         'metadataLI_df': 'metadataLI'
     }
 
-
-    # Convert timestamp columns back to str
+    # Convert timestamp columns back to str and handle out-of-range float values
     for sheet_name, sheet in sheets.items():
         print(f"Processing {sheet_name}: {sheet}")
         if sheet is None:
             print(f"Warning: {sheet_name} is None and will be skipped.")
             continue
+
+        # Replace out-of-range float values with None
+        sheet.replace([np.inf, -np.inf], None, inplace=True)
+        sheet.fillna('', inplace=True)  # Optionally replace NaN with an empty string
 
         # If the sheet has a 'Create Date' column, convert it to str
         if 'Create Date' in sheet.columns:

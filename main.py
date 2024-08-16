@@ -1,7 +1,7 @@
 import gspread
 import pandas as pd
 from datetime import datetime
-from scripts.load_data import load_data
+from scripts.load_data import load_data, save_sheet, load_sheets_csv
 from scripts.clean_sheets_leads import clean_sheets_leads
 from scripts.clean_sheets_metadata import clean_sheets_metadata
 from scripts.push_data import push_data
@@ -37,30 +37,33 @@ def main():
     # Load the data and spreadsheet
     data, ss = load_data(client)
 
+    # Save the sheets to data
+    save_sheet(data)
+
+    # Load the sheets (for testing purposes / to avoid redunant pulls)
+    data = load_sheets_csv()
+
+    # Drop the index if it exists
+    for sheet, sheet_data in data.items():
+        if 'Unnamed: 0' in list(sheet_data.columns):
+            sheet_data = sheet_data.drop(columns=['Unnamed: 0'])
+
     # Clean the leads related sheets create vars for flagged and leadDataClean_df
-    #leadDataClean_df, flagged_df = clean_sheets_leads(data, start_date)
+    leadDataClean_df, flagged_df = clean_sheets_leads(data, start_date)
 
     # Clean the metadata related sheets
     metadataFacebook_df, metadataGoogle_df, metadataLI_df = clean_sheets_metadata(data)
 
     # Establish sheets to push to Google Sheets
     sheets = {
-        #'leadDataClean_df': leadDataClean_df,
-        #'flagged_df': flagged_df,
+        'leadDataClean_df': leadDataClean_df,
+        'flagged_df': flagged_df,
         'metadataFacebook_df': metadataFacebook_df,
         'metadataGoogle_df': metadataGoogle_df,
         'metadataLI_df': metadataLI_df
     }
 
     print(sheets)
-
-    # Save sheets to data for
-    #for sheet_name, sheet in sheets.items():
-        # Save the sheet to data for testing
-        #print("Saving Sheet to data.")
-        #sheet.to_csv(f"{sheet_name}.csv")
-
-    # Push the cleaned data to Google Sheets
     push_data(sheets, ss)
 
 main()

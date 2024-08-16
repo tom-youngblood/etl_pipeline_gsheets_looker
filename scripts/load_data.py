@@ -94,3 +94,22 @@ def load_sheets_csv():
             data[str(filename.replace('.csv', ''))] = pd.read_csv(file_path, index_col=False)
 
     return data
+
+def drop_unnamed_columns(data):
+    """
+    Iterate through each DataFrame in the provided dictionary and drop columns with 'Unnamed' in their name.
+    _________
+
+    Arguments
+    _________
+    data (dict): Dictionary of the format {<sheet_name>_df, data_values_for_sheet}
+
+    Returns
+    _________
+    None
+    """
+    for sheet_name, df in data.items():
+        # Identify columns with 'Unnamed' in their name
+        unnamed_columns = [col for col in df.columns if 'Unnamed' in col]
+        if unnamed_columns:
+            df.drop(columns=unnamed_columns, inplace=True)

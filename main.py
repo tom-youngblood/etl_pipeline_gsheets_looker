@@ -1,7 +1,7 @@
 import gspread
 import pandas as pd
 from datetime import datetime
-from scripts.load_data import load_data, save_sheet, load_sheets_csv
+from scripts.load_data import load_data, save_sheet, load_sheets_csv, drop_unnamed_columns
 from scripts.clean_sheets_leads import clean_sheets_leads
 from scripts.clean_sheets_metadata import clean_sheets_metadata
 from scripts.push_data import push_data
@@ -44,9 +44,7 @@ def main():
     data = load_sheets_csv()
 
     # Drop the index if it exists
-    for sheet, sheet_data in data.items():
-        if 'Unnamed: 0' in list(sheet_data.columns):
-            sheet_data = sheet_data.drop(columns=['Unnamed: 0'])
+    drop_unnamed_columns(data)
 
     # Clean the leads related sheets create vars for flagged and leadDataClean_df
     leadDataClean_df, flagged_df = clean_sheets_leads(data, start_date)
@@ -62,6 +60,9 @@ def main():
         'metadataGoogle_df': metadataGoogle_df,
         'metadataLI_df': metadataLI_df
     }
+
+    # Final pass to clean sheets
+    drop_unnamed_columns(sheets)
 
     print(sheets)
     push_data(sheets, ss)

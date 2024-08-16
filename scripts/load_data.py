@@ -13,6 +13,7 @@ def load_data(client):
     Returns
     ________
     sheet_dfs (dict): Dictionary of the format {<sheet_name>_df, data_values_for_sheet}
+    ss (gspread object): The spreadsheet to operate on
     '''
     # Initialize Service Account
     sa = gspread.service_account()
@@ -42,4 +43,4 @@ def load_data(client):
         # Append the df to the df dictionary
         sheet_dfs[ws_df_title] = pd.DataFrame(data, columns = columns)
 
-    return sheet_dfs
+    return sheet_dfs, ss

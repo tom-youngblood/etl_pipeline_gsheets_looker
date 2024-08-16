@@ -20,13 +20,13 @@ def clean_sheets_leads(data, start_date):
     dataframe and the leadDataClean dataframe.
     '''
     # Update the outliersClean sheet
-    flagged_df, leadDataClean_df = update_sheets(data, start_date)
+    leadDataClean_df, flagged_df = update_sheets(data, start_date)
 
     # Clean the columns of leadDataClean_df
     leadDataClean_df = add_cleaned_outliers_leadDataClean_df(data, leadDataClean_df)
 
     # Return the flagged df and the cleaned lead data df
-    return (flagged_df, leadDataClean_df)
+    return leadDataClean_df, flagged_df
 
 def update_sheets(data, start_date):
     '''
@@ -51,6 +51,44 @@ def update_sheets(data, start_date):
     flagged_df = data['flagged_df']
     leadDataClean_df = data['leadDataClean_df']
 
+    # Establish column headers
+    col_headers = [
+    'Record ID', 'First Name', 'Last Name', 'Email', 'Create Date',
+    'Lifecycle Stage', 'Original Source', 'Original Source Drill-Down 1',
+    'Original Source Drill-Down 2', 'Latest Source', 'Latest Source Drill-Down 1',
+    'Latest Source Drill-Down 2', 'Contact owner', 'Company Name',
+    'Job Title', 'Lead Status', 'Company size', 'utm_source',
+    'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
+
+    # Fix the column names if they don't match the expected headers
+    if 'Phone Number' in leadData_df.columns:
+        leadData_df.drop(columns=['Phone Number'])
+
+    if list(leadData_df.columns) != col_headers:
+        print(list(leadData_df.columns))
+        print('Adding Columns to leadData.')
+        leadData_df.columns = col_headers
+
+    # Check if the number of columns matches
+    if len(flagged_df.columns) != len(col_headers):
+        print(f"Length mismatch: flagged_df has {len(flagged_df.columns)} columns, but expected {len(col_headers)} columns.")
+
+        # Truncate or add columns to match the expected number of headers
+        if len(flagged_df.columns) > len(col_headers):
+            # Too many columns: drop the extra columns
+            flagged_df = flagged_df.iloc[:, :len(col_headers)]
+        else:
+            # Not enough columns: add empty columns
+            for i in range(len(flagged_df.columns), len(col_headers)):
+                flagged_df[f"Extra_Column_{i}"] = None
+
+    # Replace the column names with the expected headers
+    flagged_df.columns = col_headers
+
+    # Set the leadData first row to 0
+    leadDataClean_df.loc[0] = [''] * len(leadData_df.columns)
+
+
     # Convert columns to datetime
     leadData_df['Create Date'] = pd.to_datetime(leadData_df['Create Date'], format="%m/%d/%y %H:%M")
     outliers_df['Create Date'] = pd.to_datetime(outliers_df['Create Date'], format="%m/%d/%y %H:%M")
@@ -66,13 +104,14 @@ def update_sheets(data, start_date):
         # If the lead was generated before the start date and the row is not in outliers_df and is not in flagged_df
         if row['Create Date'] < start_date and not is_in_outliers and not is_in_flagged:
             # Add to flagged_df
+            flagged_df = flagged_df.copy()
             flagged_df.loc[index] = row
 
         # If the lead was generated after the start date and the the row is not in outliers_df and is not in flagged_df
-        elif row['Create Date'] >= start_date and not is_in_outliers and not is_in_outliers and not is_in_flagged:
+        if row['Create Date'] >= start_date and not is_in_outliers and not is_in_outliers:
             leadDataClean_df.loc[index] = row
 
-    return (flagged_df, leadDataClean_df)
+    return leadDataClean_df,flagged_df
 
 def add_cleaned_outliers_leadDataClean_df(data, leadDataClean_df):
     '''

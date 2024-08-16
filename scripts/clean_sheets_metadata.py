@@ -12,8 +12,9 @@ def clean_sheets_metadata(data):
 
     Returns
     _________
-    Cleaned_metadata_dfs (dict): A dictionary of the cleaned metadata dataframes
-    of the format {<sheet_name>_df, data_values_for_sheet}
+    metadataFacebook_df (pd.DataFrame): Facebook data with 'Round' column
+    metadataGoogle_df (pd.dataframe): Google data with 'Round' column
+    metadataLI_df (pd.DataFrame): LI data with 'Round' column
     '''
     # Load the neccessary sheets
     metadataFacebook_df = data['metadataFacebook_df']
@@ -39,6 +40,8 @@ def clean_sheets_metadata(data):
             add_round_column(sheet, settings_df)
             # Add the round column's values
             add_round_column_values(sheet, settings_df)
+
+    return metadataFacebook_df,metadataGoogle_df, metadataLI_df
 
 def add_round_column(sheet, settings):
     '''
